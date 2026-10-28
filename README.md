@@ -4,6 +4,8 @@ A browser-based tracker for Pokémon HeartGold/SoulSilver map randomizer runs. U
 
 **Live site:** https://YOUR-USERNAME.github.io/hgss-map-randomizer-tracker/
 
+<img src="walkthrough.png" alt="Screenshot of the HGSS Map Randomizer Tracker showing the badge case and the next step" width="700">
+
 ## Features
 
 - Upload the `*_map_randomized.log` file. It is read in your browser and never sent anywhere.
