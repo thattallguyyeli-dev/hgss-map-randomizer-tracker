@@ -13,9 +13,17 @@ A browser-based tracker for Pokémon HeartGold/SoulSilver map randomizer runs. U
 - Searchable door list with Visited boxes and notes.
 - Progress is saved in your browser per seed. Export and import it to move between devices.
 
+## Works with
+
+This tracker reads the log file produced by the [HGSS Map Randomizer](https://github.com/adrienntindall/hgss-map-randomizer/releases) by adrienntindall. Download the randomizer from its releases page; it is a separate project and is not included here.
+
+**You need your own legally obtained HeartGold or SoulSilver ROM.** This project does not provide, link to, or help with finding ROMs.
+
+The story walkthrough is built for HeartGold/SoulSilver only. That randomizer also supports other games, but those logs are not supported here.
+
 ## How to use
 
-1. Run the map randomizer and keep the `.log` file it produces.
+1. Run the HGSS Map Randomizer on your own ROM and keep the `.log` file it produces. The seed is on the first line of the log.
 2. Open the site and click **Upload map log**.
 3. Follow the Walkthrough tab. Use All doors to note where doors take you.
 
@@ -39,7 +47,7 @@ Issues and pull requests are welcome, especially corrections to the story step p
 
 ## Disclaimer
 
-Unofficial fan project, not affiliated with or endorsed by Nintendo, Game Freak, or The Pokémon Company. It contains no game data or ROMs.
+Unofficial fan project, not affiliated with or endorsed by Nintendo, Game Freak, The Pokémon Company, or the author of the HGSS Map Randomizer. It contains no game data or ROMs, and users must supply their own.
 
 ## License
 

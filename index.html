@@ -4,38 +4,66 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HGSS Map Randomizer Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#fff;--fg:#1d2330;--mut:#667085;--card:#f6f8fc;--bd:#d6dbe6;--acc:#2f6fed;--ok:#e3f1dc;--nx:#fff4cc}
-@media(prefers-color-scheme:dark){:root{--bg:#14171f;--fg:#e8ebf2;--mut:#98a2b3;--card:#1c2130;--bd:#2d3447;--acc:#7aa2ff;--ok:#1f3a2a;--nx:#3d3516}}
+:root{--bg:#0e1830;--bg2:#15233f;--card:#1a2a4a;--bd:#2f4470;--fg:#eaf0fb;--mut:#a3b3cf;--gold:#f2c14e;--silver:#cfd8e6;--ink:#1b1b1b}
+@media(prefers-color-scheme:light){:root{--bg:#eef2f9;--bg2:#e1e9f5;--card:#fff;--bd:#c3d0e5;--fg:#15233f;--mut:#566b8d;--gold:#c98f1c;--silver:#6b7b95}}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.45 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
-header,main{max-width:900px;margin:0 auto;padding:12px 16px}
-h1{font-size:20px;margin:6px 0}
+body{margin:0;min-height:100vh;font:16px/1.5 Figtree,system-ui,sans-serif;color:var(--fg);
+background:radial-gradient(800px 380px at 92% -8%,rgba(242,193,78,.2),transparent),radial-gradient(800px 380px at 0% -8%,rgba(207,216,230,.16),transparent),var(--bg)}
+header,main{max-width:860px;margin:0 auto;padding:16px 18px}
+h1{font:800 clamp(28px,6vw,46px)/1.05 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em;margin:10px 0 6px}
 .mut,small{color:var(--mut)}
 code{font-size:12px;word-break:break-all}
-nav{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
-button,.btn{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
-button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-input[type=text],input[type=search]{width:100%;padding:7px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin:8px 0}
-.card.done{background:var(--ok);opacity:.75}
-.card.next{background:var(--nx);border-color:var(--acc)}
-.card.done b{text-decoration:line-through}
-.hit{margin:4px 0 0 22px;padding-left:8px;border-left:3px solid var(--acc)}
+.case{display:flex;flex-wrap:wrap;gap:10px;width:fit-content;max-width:100%;padding:14px 16px;margin:16px 0 8px;border:1px solid var(--bd);border-radius:20px;background:linear-gradient(135deg,rgba(242,193,78,.14),rgba(207,216,230,.1))}
+.bd{width:30px;height:30px;border-radius:50%;border:2px dashed var(--bd);transition:box-shadow .4s,background .4s}
+.bd.on{border:0;background:radial-gradient(circle at 35% 30%,hsl(var(--h) 95% 78%),hsl(var(--h) 75% 46%));box-shadow:0 0 14px hsl(var(--h) 90% 60%/.6)}
+.bar{height:6px;border-radius:9px;background:var(--bd);overflow:hidden;margin:8px 0 12px;max-width:420px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--silver),var(--gold))}
+nav{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;margin:12px 0;background:var(--bg2);border:1px solid var(--bd);border-radius:999px}
+nav button{border:0;background:none;border-radius:999px;padding:7px 16px;color:var(--mut);font:600 15px Figtree,sans-serif;cursor:pointer}
+nav button.on{background:var(--gold);color:var(--ink)}
+.btn,.go,#exp,#rst{display:inline-block;background:var(--gold);color:var(--ink);border:0;border-radius:12px;padding:9px 16px;font:700 15px Figtree,sans-serif;cursor:pointer}
+#rst{background:var(--bg2);color:var(--fg);border:1px solid var(--bd)}
+.nextup{background:linear-gradient(135deg,rgba(242,193,78,.2),rgba(207,216,230,.1)),var(--card);border:1px solid var(--gold);border-radius:24px;padding:20px 22px;box-shadow:0 12px 40px rgba(0,0,0,.28)}
+.nextup h2{font:800 clamp(24px,5vw,32px)/1.1 "Bricolage Grotesque",system-ui,sans-serif;margin:4px 0 8px}
+.route{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+.chip{display:flex;flex-direction:column;min-width:0;max-width:100%;padding:8px 12px;font-weight:600;background:var(--bg2);border:1px solid var(--bd);border-radius:12px}
+.chip small{font-weight:400;font-size:11px;word-break:break-all}
+.chip.to{border-color:var(--gold)}
+.arr{color:var(--gold);font-size:22px}
+.go{margin-top:8px}
+.sec{font:700 20px "Bricolage Grotesque",system-ui,sans-serif;margin:28px 0 6px}
+.steps{margin-left:11px;padding-left:22px;border-left:2px solid var(--bd)}
+.step{position:relative;padding:8px 0 10px}
+.step label{display:flex;gap:8px;align-items:baseline;cursor:pointer}
+.step input{appearance:none;-webkit-appearance:none;position:absolute;left:-34px;top:9px;width:22px;height:22px;margin:0;border-radius:50%;border:2px solid var(--bd);background:var(--bg);cursor:pointer}
+.step input:checked{background:var(--gold);border-color:var(--gold)}
+.step input:checked::after{content:"✓";display:block;text-align:center;line-height:18px;font-size:14px;font-weight:700;color:var(--ink)}
+.step.cur input{border-color:var(--gold)}
+.step.done b{color:var(--mut);text-decoration:line-through}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin:8px 0}
 .row{display:grid;grid-template-columns:24px 1fr 1fr;gap:10px;align-items:center}
 @media(max-width:600px){.row{grid-template-columns:24px 1fr}.row input[type=text]{grid-column:1/-1}}
-.warn{background:var(--nx);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;margin:8px 0}
+input[type=text],input[type=search]{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2);color:var(--fg);font:inherit}
+.warn{background:var(--card);border:1px solid var(--gold);border-radius:14px;padding:10px 14px;margin:10px 0}
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:64px 20px;border:2px dashed var(--gold);border-radius:26px;background:rgba(242,193,78,.07);cursor:pointer}
+.drop:hover{background:rgba(242,193,78,.14)}
+.drop strong{font:800 clamp(22px,5vw,30px) "Bricolage Grotesque",system-ui,sans-serif}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <header>
   <h1>HGSS Map Randomizer Tracker</h1>
-  <div class="mut">Your log is read in your browser only. Progress is saved in this browser, per seed.</div>
-  <div style="margin:10px 0"><label class="btn">Upload map log <input id="file" type="file" hidden></label>
-  <span id="seed" class="mut"></span></div>
+  <div class="mut">Upload your log and follow the route. Everything stays in your browser.</div>
+  <div id="hero"></div>
+  <label class="btn">Choose log file <input id="file" type="file" hidden></label> <span id="seed" class="mut"></span><br>
   <nav id="tabs"></nav>
 </header>
-<main id="main"><p>Upload your <code>*_map_randomized.log</code> to begin.</p></main>
+<main id="main"><label class="drop" for="file"><strong>Drop your map log here</strong><span class="mut">or click to choose the file (*_map_randomized.log)</span></label></main>
 
 <script>
 /* [phase, goal, what to do, regex on original entrance IDs (null = not in the log)] */
@@ -129,17 +157,25 @@ function loadLog(text,remember){
 function tabs(){$("#tabs").innerHTML=[["walk","Walkthrough"],["doors","All doors"],["save","Save / backup"]]
  .map(t=>`<button data-tab="${t[0]}" class="${tab===t[0]?"on":""}">${t[1]}</button>`).join("")}
 
+function chips(id){return `<div class="route"><span class="chip">${E(pretty(id))}<small>${id}</small></span><span class="arr" aria-label="leads to">⟶</span><span class="chip to">${E(pretty(log.conn[id]))}<small>${log.conn[id]}</small></span></div>`}
+function stepDoors(i){return STEPS[i][3]?log.ids.filter(id=>new RegExp(STEPS[i][3],"i").test(id)).slice(0,8):[]}
+function badges(){
+ const b=STEPS.map((s,i)=>[s,i]).filter(x=>/Gym/.test(x[0][1])&&/Johto|Kanto/.test(x[0][0]));
+ const got=b.filter(x=>S.done[x[1]]).length,done=STEPS.filter((s,i)=>S.done[i]).length;
+ $("#hero").innerHTML=`<div class="case" role="img" aria-label="Badge case: ${got} of ${b.length} badges">`+
+  b.map((x,k)=>`<span class="bd${S.done[x[1]]?" on":""}" style="--h:${k*22}" title="${E(x[0][1])}"></span>`).join("")+
+  `</div><div class="mut">${got} of ${b.length} badges, ${done} of ${STEPS.length} steps</div><div class="bar"><i style="width:${Math.round(done/STEPS.length*100)}%"></i></div>`}
 function walk(){
- const n=STEPS.length,done=STEPS.filter((s,i)=>S.done[i]).length,nx=STEPS.findIndex((s,i)=>!S.done[i]);
- let h=`<div class="warn">${nx<0?"All steps done!":"<b>Next:</b> "+E(STEPS[nx][1])} · ${done}/${n} complete.<br>
- <small>Walking through a door puts you at its partner. Test one early (for example Violet Gym) to confirm this matches your game.</small></div>`;
- STEPS.forEach((s,i)=>{
-  const ids=s[3]?log.ids.filter(id=>new RegExp(s[3],"i").test(id)).slice(0,8):[];
-  h+=`<div class="card${S.done[i]?" done":""}${i===nx?" next":""}"><label><input type="checkbox" data-step="${i}" ${S.done[i]?"checked":""}>
-  <b>${i+1}. ${E(s[1])}</b> <small>${s[0]}</small></label>${s[2]?`<div class="mut">${E(s[2])}</div>`:""}`+
-  (ids.length?ids.map(id=>`<div class="hit">${E(pretty(id))} <small>(${id})</small><br>→ comes out at <b>${E(pretty(log.conn[id]))}</b> <small>(${log.conn[id]})</small></div>`).join("")
-   :`<div class="hit mut">${s[3]?"No matching door in this log.":"Not shuffled in the log (vanilla)."}</div>`)+`</div>`;});
- $("#main").innerHTML=h;}
+ const nx=STEPS.findIndex((s,i)=>!S.done[i]);let h="";
+ if(nx<0)h+=`<section class="nextup"><h2>Story complete</h2><p class="mut">Every step is ticked off.</p></section>`;
+ else{const s=STEPS[nx],m=stepDoors(nx);
+  h+=`<section class="nextup"><div class="mut">Go here next</div><h2>${E(s[1])}</h2>${s[2]?`<p>${E(s[2])}</p>`:""}`+
+   (m.length?m.map(chips).join(""):`<p class="mut">${s[3]?"No matching door in this log.":"Not shuffled in the log, so the normal route applies."}</p>`)+
+   `<button class="go" data-finish="${nx}">Mark done</button></section>`}
+ h+=`<h3 class="sec">Full route</h3><div class="steps">`;
+ STEPS.forEach((s,i)=>{h+=`<div class="step${S.done[i]?" done":""}${i===nx?" cur":""}"><label><input type="checkbox" data-step="${i}" ${S.done[i]?"checked":""}><span><b>${i+1}. ${E(s[1])}</b> <small>${s[0]}</small></span></label>`+
+  (S.done[i]||i===nx?"":stepDoors(i).map(chips).join(""))+`</div>`});
+ $("#main").innerHTML=h+"</div>";}
 
 function doorList(){
  const f=q.trim().toLowerCase();
@@ -163,10 +199,11 @@ function savePane(){
  <button id="rst">Reset this seed</button></div>
  <div class="warn"><b>Soft-lock note:</b> automatic save-safety checks are not in this version. Keep a backup of your .sav file or use emulator save states before key story events.</div>`;}
 
-function render(){tabs();if(!log)return;({walk,doors,save:savePane})[tab]();}
+function render(){tabs();if(!log)return;badges();({walk,doors,save:savePane})[tab]();}
 
 document.addEventListener("click",e=>{const t=e.target;
  if(t.dataset.tab){tab=t.dataset.tab;render()}
+ if(t.dataset.finish!==undefined){S.done[t.dataset.finish]=true;save();render()}
  if(t.id==="exp"){const b=new Blob([JSON.stringify({seed:log.seed,S})],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="hgss-progress-"+(log.seed||"seed")+".json";a.click()}
  if(t.id==="rst"&&confirm("Erase all progress for this seed?")){S={done:{},doors:{}};save();render()}});
@@ -179,7 +216,9 @@ document.addEventListener("input",e=>{const t=e.target;
  if(t.id==="q"){q=t.value;doorList()}
  if(t.dataset.note){(S.doors[t.dataset.note]=S.doors[t.dataset.note]||{}).note=t.value;save()}});
 
-try{const last=localStorage.getItem("hgss:lastlog");if(last)loadLog(last,false);else tabs()}catch(e){tabs()}
+try{const last=localStorage.getItem("hgss:lastlog");if(last)loadLog(last,false)}catch(e){}
+["dragover","drop"].forEach(n=>document.addEventListener(n,e=>e.preventDefault()));
+document.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f){const r=new FileReader();r.onload=()=>loadLog(r.result,true);r.readAsText(f)}});
 </script>
 </body>
 </html>
