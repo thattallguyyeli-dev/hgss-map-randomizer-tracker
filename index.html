@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HGSS Map Randomizer Tracker</title>
+<style>
+:root{--bg:#fff;--fg:#1d2330;--mut:#667085;--card:#f6f8fc;--bd:#d6dbe6;--acc:#2f6fed;--ok:#e3f1dc;--nx:#fff4cc}
+@media(prefers-color-scheme:dark){:root{--bg:#14171f;--fg:#e8ebf2;--mut:#98a2b3;--card:#1c2130;--bd:#2d3447;--acc:#7aa2ff;--ok:#1f3a2a;--nx:#3d3516}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+header,main{max-width:900px;margin:0 auto;padding:12px 16px}
+h1{font-size:20px;margin:6px 0}
+.mut,small{color:var(--mut)}
+code{font-size:12px;word-break:break-all}
+nav{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+button,.btn{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+input[type=text],input[type=search]{width:100%;padding:7px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin:8px 0}
+.card.done{background:var(--ok);opacity:.75}
+.card.next{background:var(--nx);border-color:var(--acc)}
+.card.done b{text-decoration:line-through}
+.hit{margin:4px 0 0 22px;padding-left:8px;border-left:3px solid var(--acc)}
+.row{display:grid;grid-template-columns:24px 1fr 1fr;gap:10px;align-items:center}
+@media(max-width:600px){.row{grid-template-columns:24px 1fr}.row input[type=text]{grid-column:1/-1}}
+.warn{background:var(--nx);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;margin:8px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>HGSS Map Randomizer Tracker</h1>
+  <div class="mut">Your log is read in your browser only. Progress is saved in this browser, per seed.</div>
+  <div style="margin:10px 0"><label class="btn">Upload map log <input id="file" type="file" hidden></label>
+  <span id="seed" class="mut"></span></div>
+  <nav id="tabs"></nav>
+</header>
+<main id="main"><p>Upload your <code>*_map_randomized.log</code> to begin.</p></main>
+
+<script>
+/* [phase, goal, what to do, regex on original entrance IDs (null = not in the log)] */
+const STEPS=[
+["Johto","Get your starter","Elm's Lab. Not shuffled in the log.",null],
+["Johto","Cherrygrove City","Route 29 to Cherrygrove.","ROUTE_29|R29_R46"],
+["Johto","Mr. Pokémon's house","Get the Mystery Egg. Not shuffled in the log.",null],
+["Johto","Sprout Tower","Violet City. Get Flash.","SPROUT_TOWER|VIOLET_SPROUT"],
+["Johto","Violet Gym: Falkner","Zephyr Badge.","VIOLET_GYM"],
+["Johto","Union Cave to Azalea","Routes 32 and 33.","ROUTE_3[23]_UNION|UNION_CAVE_R3[23]"],
+["Johto","Slowpoke Well","Clear out Team Rocket.","SLOWPOKE_WELL"],
+["Johto","Azalea Gym: Bugsy","Hive Badge.","AZALEA_GYM"],
+["Johto","Ilex Forest","Get Cut and reach Goldenrod.","ILEX"],
+["Johto","Goldenrod Gym: Whitney","Plain Badge.","GOLDENROD_GYM"],
+["Johto","Flower Shop","Squirtbottle for Sudowoodo.","FLOWER_SHOP"],
+["Johto","Route 36 gates","Sudowoodo, then on to Ecruteak.","R36|ROUTE_36"],
+["Johto","Burned Tower","Ecruteak City.","BURNT_TOWER"],
+["Johto","Ecruteak Gym: Morty","Fog Badge.","ECRUTEAK_GYM|ECURTEAK_GYM"],
+["Johto","Dance Theater","Get Surf.","THEATER"],
+["Johto","Moomoo Farm / Route 39","On the way to Olivine.","MOOMOO"],
+["Johto","Olivine Lighthouse","Jasmine is at the top.","OLIVINE_LIGHTHOUSE|LIGHTHOUSE_OLIVINE|LIGHTHOUSE_EXTERIOR"],
+["Johto","Cianwood Gym: Chuck","Storm Badge.","CIANWOOD_GYM"],
+["Johto","Cianwood Pharmacy","SecretPotion for the Lighthouse.","PHARMACY"],
+["Johto","Olivine Gym: Jasmine","Mineral Badge.","OLIVINE_GYM"],
+["Johto","Mt. Mortar / Route 42","Get Strength, reach Mahogany.","MT_MORTAR_EXIT_R42|ROUTE_38_MT_MORTAR"],
+["Johto","Lake of Rage","Red Gyarados.","LAKE_OF_RAGE|ROUTE_43"],
+["Johto","Mahogany Rocket Hideout","Mahogany Town.","ROCKET_HIDEOUT_SHOP|MAHOGANY_ROCKET"],
+["Johto","Goldenrod Radio Tower","Rocket takeover. You need the Basement Key.","GOLDENROD_RADIO_TOWER|RADIO_TOWER_GOLDENROD|GOLDENROD_UNDERGROUND|GOLDENROD_TUNNEL_ROCKET"],
+["Johto","Mahogany Gym: Pryce","Glacier Badge.","MAHOGANY_GYM"],
+["Johto","Ice Path","Route 44 to Blackthorn.","ICE_PATH_EXIT|ROUTE_44_ICE|BLACKTHORN_ICE_PATH"],
+["Johto","Dragon's Den","Shrine trial.","DRAGONS_DEN|BLACKTHORN_DRAGONS"],
+["Johto","Blackthorn Gym: Clair","Rising Badge.","BLACKTHORN_GYM"],
+["Johto","Tohjo Falls / Route 27","Toward Victory Road.","TOHJO|ROUTE_27_TOHJO"],
+["Johto","Victory Road","Reach the Indigo Plateau.","VICTORY_ROAD_EXIT|INDIGO_PLAT_VICTORY|INT_VICTORY_ROAD"],
+["League","Will","","WILL_ROOM_ENT"],
+["League","Koga","","KOGA_ROOM_ENT"],
+["League","Bruno","","BRUNO_ROOM_ENT"],
+["League","Karen","","KAREN_ROOM_ENT"],
+["League","Champion Lance","","CHAMPION_ROOM_ENT"],
+["Kanto","S.S. Aqua to Kanto","Boat from Olivine.","VERMILION_PORT|OLIVINE_PORT"],
+["Kanto","Vermilion Gym: Lt. Surge","Thunder Badge.","VERMILION_GYM|VERMLIION_GYM"],
+["Kanto","Saffron Gym: Sabrina","Marsh Badge.","SAFFRON_GYM"],
+["Kanto","Celadon Gym: Erika","Rainbow Badge.","CELADON_GYM"],
+["Kanto","Fuchsia Gym: Janine","Soul Badge.","FUCHSIA_GYM"],
+["Kanto","Cerulean Gym: Misty","Cascade Badge.","CERULEAN_GYM"],
+["Kanto","Pewter Gym: Brock","Boulder Badge.","PEWTER_GYM"],
+["Kanto","Blaine's Gym (Seafoam)","Volcano Badge. The Gym is in Seafoam Islands.","SEAFOAM_GYM"],
+["Kanto","Viridian Gym: Blue","Earth Badge.","VIRIDIAN_GYM"],
+["Postgame","Mt. Silver: Red","","MT_SILVER_RED"],
+["Postgame","Cerulean Cave: Mewtwo","","CERULEAN_CAVE_ENT"],
+["Postgame","Bell Tower roof (Ho-Oh / Lugia)","Version-specific legendary.","BELL_TOWER_ROOF"],
+["Postgame","Whirl Islands: Lugia chamber","Version-specific legendary.","WHIRL_ISLAND_LUGIA"]
+];
+
+const W={ENT:"Entrance",EXIT:"Exit",INT:"Interior",PC:"Pokémon Center",WIFI:"Wi-Fi",MT:"Mt.",DEPT:"Dept",TO:"to",
+E:"East",W:"West",N:"North",S:"South",C:"Center",L:"Left",R:"Right",LEAUGE:"League",HOSUE:"House",FOERST:"Forest",
+BURNT:"Burned",ECURTEAK:"Ecruteak",VERMLIION:"Vermilion",APT:"Apt",ALPH:"Ruins of Alph",DOWNSTAIRS:"Downstairs",UPSTAIRS:"Upstairs"};
+const E=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function pretty(id){const t=id.split("_"),o=[];
+ for(let i=0;i<t.length;i++){const x=t[i];let m;
+  if(x==="ROUTE"&&/^\d+$/.test(t[i+1]||"")){o.push("Route "+t[++i]);continue}
+  if(m=x.match(/^R(\d+)$/))o.push("Route "+m[1]);
+  else if(m=x.match(/^F(\d+)$/))o.push(m[1]+"F");
+  else if(m=x.match(/^BF(\d+)$/))o.push("B"+m[1]+"F");
+  else o.push(W[x]||x[0]+x.slice(1).toLowerCase());}
+ return o.join(" ")}
+
+let log=null,S={done:{},doors:{}},tab="walk",q="";
+const $=s=>document.querySelector(s);
+
+function parse(t){const conn={},ids=new Set();let seed="";
+ t.split(/\r?\n/).forEach(l=>{l=l.trim();
+  let m=l.match(/^seed\s*[:=]\s*(-?\d+)/i);if(m){seed=m[1];return}
+  m=l.match(/([A-Za-z0-9_]+)\s*(?:<->|<=>|↔|=>|->)\s*([A-Za-z0-9_]+)/);if(!m)return;
+  const a=m[1].toUpperCase(),b=m[2].toUpperCase();ids.add(a);ids.add(b);
+  if(!conn[a])conn[a]=b;if(!conn[b])conn[b]=a;});
+ return{seed,conn,ids:[...ids].sort()}}
+
+const key=()=>"hgss:"+(log.seed||"noseed");
+function load(){S={done:{},doors:{}};try{const r=JSON.parse(localStorage.getItem(key()));if(r){S=r;S.done=S.done||{};S.doors=S.doors||{}}}catch(e){}}
+function save(){try{localStorage.setItem(key(),JSON.stringify(S))}catch(e){}}
+
+function loadLog(text,remember){
+ const p=parse(text);
+ if(!p.ids.length){alert("No door pairs found. The log needs lines like  A <-> B");return}
+ log=p;load();
+ if(remember){try{localStorage.setItem("hgss:lastlog",text)}catch(e){}}
+ $("#seed").textContent="Seed "+(p.seed||"unknown")+" · "+Math.round(Object.keys(p.conn).length/2)+" door pairs";
+ render();}
+
+function tabs(){$("#tabs").innerHTML=[["walk","Walkthrough"],["doors","All doors"],["save","Save / backup"]]
+ .map(t=>`<button data-tab="${t[0]}" class="${tab===t[0]?"on":""}">${t[1]}</button>`).join("")}
+
+function walk(){
+ const n=STEPS.length,done=STEPS.filter((s,i)=>S.done[i]).length,nx=STEPS.findIndex((s,i)=>!S.done[i]);
+ let h=`<div class="warn">${nx<0?"All steps done!":"<b>Next:</b> "+E(STEPS[nx][1])} · ${done}/${n} complete.<br>
+ <small>Walking through a door puts you at its partner. Test one early (for example Violet Gym) to confirm this matches your game.</small></div>`;
+ STEPS.forEach((s,i)=>{
+  const ids=s[3]?log.ids.filter(id=>new RegExp(s[3],"i").test(id)).slice(0,8):[];
+  h+=`<div class="card${S.done[i]?" done":""}${i===nx?" next":""}"><label><input type="checkbox" data-step="${i}" ${S.done[i]?"checked":""}>
+  <b>${i+1}. ${E(s[1])}</b> <small>${s[0]}</small></label>${s[2]?`<div class="mut">${E(s[2])}</div>`:""}`+
+  (ids.length?ids.map(id=>`<div class="hit">${E(pretty(id))} <small>(${id})</small><br>→ comes out at <b>${E(pretty(log.conn[id]))}</b> <small>(${log.conn[id]})</small></div>`).join("")
+   :`<div class="hit mut">${s[3]?"No matching door in this log.":"Not shuffled in the log (vanilla)."}</div>`)+`</div>`;});
+ $("#main").innerHTML=h;}
+
+function doorList(){
+ const f=q.trim().toLowerCase();
+ const all=log.ids.filter(id=>!f||(id+" "+pretty(id)+" "+log.conn[id]+" "+pretty(log.conn[id])+" "+((S.doors[id]||{}).note||"")).toLowerCase().includes(f));
+ const shown=all.slice(0,150);
+ $("#list").innerHTML=shown.map(id=>{const d=S.doors[id]||{};
+  return `<div class="card row"><input type="checkbox" data-door="${id}" ${d.v?"checked":""} title="Visited">
+  <div><b>${E(pretty(id))}</b> <small>${id}</small><br>→ <b>${E(pretty(log.conn[id]))}</b> <small>${log.conn[id]}</small></div>
+  <input type="text" data-note="${id}" placeholder="Notes (what you found there)" value="${E(d.note||"")}"></div>`}).join("")
+  +(all.length>150?`<p class="mut">Showing 150 of ${all.length}. Type in the search box to narrow it.</p>`:"")
+  +(all.length?"":`<p class="mut">No doors match.</p>`);}
+
+function doors(){
+ const v=Object.values(S.doors).filter(d=>d.v).length;
+ $("#main").innerHTML=`<input type="search" id="q" placeholder="Search doors, towns or notes (e.g. violet gym)" value="${E(q)}">
+ <p class="mut">${v} of ${log.ids.length} doors marked visited.</p><div id="list"></div>`;doorList();}
+
+function savePane(){
+ $("#main").innerHTML=`<div class="card"><b>Backup progress</b><p class="mut">Progress lives in this browser. Export a file to move it to another device.</p>
+ <button id="exp">Export progress</button> <label class="btn">Import progress <input id="imp" type="file" accept=".json" hidden></label>
+ <button id="rst">Reset this seed</button></div>
+ <div class="warn"><b>Soft-lock note:</b> automatic save-safety checks are not in this version. Keep a backup of your .sav file or use emulator save states before key story events.</div>`;}
+
+function render(){tabs();if(!log)return;({walk,doors,save:savePane})[tab]();}
+
+document.addEventListener("click",e=>{const t=e.target;
+ if(t.dataset.tab){tab=t.dataset.tab;render()}
+ if(t.id==="exp"){const b=new Blob([JSON.stringify({seed:log.seed,S})],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="hgss-progress-"+(log.seed||"seed")+".json";a.click()}
+ if(t.id==="rst"&&confirm("Erase all progress for this seed?")){S={done:{},doors:{}};save();render()}});
+document.addEventListener("change",e=>{const t=e.target;
+ if(t.id==="file"&&t.files[0]){const r=new FileReader();r.onload=()=>loadLog(r.result,true);r.readAsText(t.files[0])}
+ if(t.id==="imp"&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);S=j.S;S.done=S.done||{};S.doors=S.doors||{};save();alert("Progress imported.");tab="walk";render()}catch(x){alert("That is not a valid progress file.")}};r.readAsText(t.files[0])}
+ if(t.dataset.step!==undefined){S.done[t.dataset.step]=t.checked;save();render()}
+ if(t.dataset.door){(S.doors[t.dataset.door]=S.doors[t.dataset.door]||{}).v=t.checked;save()}});
+document.addEventListener("input",e=>{const t=e.target;
+ if(t.id==="q"){q=t.value;doorList()}
+ if(t.dataset.note){(S.doors[t.dataset.note]=S.doors[t.dataset.note]||{}).note=t.value;save()}});
+
+try{const last=localStorage.getItem("hgss:lastlog");if(last)loadLog(last,false);else tabs()}catch(e){tabs()}
+</script>
+</body>
+</html>
